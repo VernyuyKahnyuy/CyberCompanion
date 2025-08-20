@@ -25,5 +25,9 @@ class PetAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Basic Info', {
             'fields': ('owner', 'name', 'pet_type')
-        })
+        }),
+        ('Mood Status', {
+            'fields': ('created_at', 'last_updated'),
+            'classes': ('collapse',) # This sections starts collapsed
+        }),
     )
