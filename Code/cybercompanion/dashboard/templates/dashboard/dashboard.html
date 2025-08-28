@@ -1,0 +1,174 @@
+<!-- dashboard/templates/dashboard/dashboard.html -->
+<!-- This recreates your Figma design using the base template -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CyberCompanion - Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Main Content Area - matches your Figma layout -->
+<div class="grid grid-cols-12 gap-6 h-full">
+    
+    <!-- Left Main Content (Pet Display + Stats) - 8 columns -->
+    <div class="col-span-8 space-y-6">
+        
+        <!-- Pet Display Area - The Heart of Your App -->
+        <div class="bg-pet-bg rounded-lg p-8 text-center relative">
+            <!-- Pet Mood Indicator (Happy bubble in your Figma) -->
+            <div class="absolute top-4 right-4">
+                <div class="bg-cyber-green text-white px-3 py-1 rounded-full text-sm font-medium">
+                    {{ pet.current_mood|title }}
+                </div>
+            </div>
+            
+            <!-- Pet Avatar (placeholder for AI-generated image) -->
+            <div class="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                <div class="text-6xl">
+                    {% if pet.current_mood == 'happy' %}🐱😊
+                    {% elif pet.current_mood == 'excited' %}🐱🎉
+                    {% elif pet.current_mood == 'worried' %}🐱😟
+                    {% elif pet.current_mood == 'sad' %}🐱😢
+                    {% else %}🐱😐
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Pet Status Text -->
+            <h2 class="text-2xl font-semibold text-gray-800 mb-2">
+                Your Cyber Pet is {{ pet.current_mood|title }}!
+            </h2>
+            
+            <!-- Encouraging Message -->
+            <p class="text-gray-600 italic">
+                "{{ pet_mood_message }}"
+            </p>
+        </div>
+        
+        <!-- Security Stats Grid (matches your Figma) -->
+        <div class="bg-white rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Security Stats</h3>
+            
+            <div class="grid grid-cols-3 gap-4">
+                
+                <!-- Password Strength Stat -->
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-3xl mb-2">🔐</div>
+                    <div class="text-sm text-gray-500 mb-1">Password Strength</div>
+                    <div class="font-semibold {{ password_strength.color_class }}">
+                        {{ password_strength.label }}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">
+                        {% if password_strength.last_check %}
+                            Last check: {{ password_strength.last_check|timesince }} ago
+                        {% else %}
+                            Not checked yet
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Breach Check Stat -->
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-3xl mb-2">🛡️</div>
+                    <div class="text-sm text-gray-500 mb-1">Breach Check</div>
+                    <div class="font-semibold {% if breach_check.is_clean %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if breach_check.breaches_found == 'Unknown' %}
+                            Not Checked
+                        {% elif breach_check.breaches_found == 0 %}
+                            Clean
+                        {% else %}
+                            {{ breach_check.breaches_found }} found
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">
+                        {% if breach_check.last_check %}
+                            Last scan: {{ breach_check.last_check|timesince }} ago
+                        {% else %}
+                            Never scanned
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Weekly Score Stat -->
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-3xl mb-2">📊</div>
+                    <div class="text-sm text-gray-500 mb-1">Weekly Score</div>
+                    <div class="font-semibold {% if weekly_score.score >= 70 %}text-green-600{% else %}text-yellow-600{% endif %}">
+                        {{ weekly_score.grade }}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">
+                        {{ weekly_score.description }}
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Quick Actions (from your Figma) -->
+        <div class="bg-white rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+            
+            <div class="grid grid-cols-3 gap-4">
+                <button class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg transition-colors">
+                    <div class="text-2xl mb-1">📧</div>
+                    <div class="text-sm">Check Email Breach</div>
+                </button>
+                
+                <button class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
+                    <div class="text-2xl mb-1">🔑</div>
+                    <div class="text-sm">Run Password Check</div>
+                </button>
+                
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-lg transition-colors">
+                    <div class="text-2xl mb-1">👁️</div>
+                    <div class="text-sm">View Security Tips</div>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar (Recent Activity) - 4 columns -->
+    <div class="col-span-4">
+        <div class="bg-white rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+            
+            {% if recent_actions %}
+                <div class="space-y-3">
+                    {% for action in recent_actions %}
+                    <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-shrink-0">
+                            {% if action.is_positive_action %}
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span class="text-green-600 text-sm">✓</span>
+                                </div>
+                            {% else %}
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <span class="text-yellow-600 text-sm">⚠</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">
+                                {{ action.get_action_type_display }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ action.created_at|timesince }} ago
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <div class="text-4xl mb-2">🌱</div>
+                    <p>No recent activity</p>
+                    <p class="text-sm">Start with a security check!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

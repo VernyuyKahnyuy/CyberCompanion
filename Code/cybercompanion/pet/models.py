@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import UserAttributeSimilarityValidator
 from django.utils import timezone
 
 # Create your models here.
@@ -68,35 +67,44 @@ class Pet(models.Model):
         """Calculate pet's mood bafsed on recent user security actions
         This is the CORE logic that makes the pet react to a behavior
         """
+        
+        # Fix: import statemnts moved to op to avoid circular imports
+        
+        try:
 
-        from security.models import SecurityAction
-        from datetime import timedelta
+            from security.models import SecurityAction
+            from datetime import timedelta
 
-        # Look at user's actions in the last 7 days
-        recent_actions = SecurityAction.objects.filter(
-            user = self.owner,
-            created_at__gte = timezone.now() - timedelta(days=7)
-        )
+            # Look at user's actions in the last 7 days
+            recent_actions = SecurityAction.objects.filter(
+                user = self.owner,
+                created_at__gte = timezone.now() - timedelta(days=7)
+            )
 
-        # start with baselilne mood score
-        score = 50
+            # start with baselilne mood score
+            score = 50
 
-        # Good actions boost mood
-        good_actions - recent_actions.filter(action_type__in=[
-            'password_check_strong',
-            '2fa_enabled',
-            'breach_check_clean'
-        ])
-        score += good_actions.count() * 10 # +10 per good action
+            # Good actions boost mood
+            positive_actions = recent_actions.filter(action_type__in=[
+                'password_check_strong',
+                '2fa_enabled',
+                'breach_check_clean'
+            ])
+            score += positive_actions.count() * 10 # +10 per good action
 
-        # Bad actions lower mood
-        bad_actions = recent_actions.filter(action_type__in=[
-            'password_check_weak',
-            'suspicious_link_clicked',
-            'breach_found'
-        ])
+            # Bad actions lower mood
+            negative_actions = recent_actions.filter(action_type__in=[
+                'password_check_weak',
+                'suspicious_link_clicked',
+                'breach_found'
+            ])
 
-        score -= bad_actions.count() * 15 # -15 per bad action
+            score -= negative_actions.count() * 15 # -15 per bad action
+            
+        except Exception as e:
+            # FIX: If SecurityAction model doesn't exist or has issues, use default mood
+            print(f"Error updating pet mood: {e}")
+            score = 50
 
         # Keep score in range 0 - 100
         score = max(0, min(100, score))
@@ -153,7 +161,7 @@ class Pet(models.Model):
         }
 
         import random
-        return random.choice(message.get(self.current_mood, message['neutral']))
+        return random.choice(messages.get(self.current_mood, messages['neutral']))
 
 class MoodHistory(models.Model):
     """

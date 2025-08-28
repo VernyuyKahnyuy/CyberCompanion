@@ -1,3 +1,5 @@
+# security/models.py
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -10,7 +12,7 @@ class SecurityAction(models.Model):
     This is what feeds into your pet's mood calculations!
 
     Example:
-    - User checks password strenght -> Security Action create
+    - User checks password strength -> Security Action create
     - User clicks suspicious lilnk -> Security Action created
     - User enables 2FA -> SecurityAction created
     """
@@ -70,7 +72,7 @@ class SecurityAction(models.Model):
     @property
     def is_positive_action (self):
         """
-        Is this a\ good security action that should make the pet happy?
+        Is this a good security action that should make the pet happy?
         """
         positive_actions = [
             'password_check_strong',
@@ -109,39 +111,41 @@ class SecurityAction(models.Model):
         }
         return impact_scores.get(self.action_type, 0)
 
+# security/models.py - CORRECTED PasswordCheck class
+
 class PasswordCheck(models.Model):
     """
     Store results of password strength checks.
-    This powers the "Password Strenght" stat in your Figma design!
+    This powers the "Password Strength" stat in your Figma design!
     """
-
-    user = models.ForeignKey(User, on_delete = models.CASCADE)
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
     # We don't store the actual password (security!), just the results
-    strenght_score = models.IntegerField(
-        help_text = "Password strenght from 0-100"
+    strength_score = models.IntegerField(
+        help_text="Password strength from 0-100"
     )
-
-    has_uppercase = models.BooleanField(default = False)
-    has_lowercase = models.BooleanField(default = False)
-    has_numbers = models.BooleanField(default = False)
-    has_symbols = models.BooleanField(default = False)
-    lenght = models.IntegerField()
-
+    
+    has_uppercase = models.BooleanField(default=False)
+    has_lowercase = models.BooleanField(default=False)
+    has_numbers = models.BooleanField(default=False)
+    has_symbols = models.BooleanField(default=False)
+    length = models.IntegerField()  # FIXED: was "lenght"
+    
     # Is this password unique or reused?
     is_unique = models.BooleanField(
-        default = True,
-        help_text = "Is this a unique password or reused from another account?"
+        default=True,
+        help_text="Is this a unique password or reused from another account?"
     )
-
-    created_at = models.DateTimeField(auto_now_add = True)
-
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_checked = models.DateTimeField(auto_now=True) # newly added
+    
     class Meta:
         ordering = ['-created_at']
-
+    
     def __str__(self):
         return f"{self.user.username}'s password check: {self.strength_score}/100"
-
+    
     @property
     def strength_label(self):
         """Convert numeric score to user-friendly label"""
@@ -155,17 +159,18 @@ class PasswordCheck(models.Model):
             return "Weak"
         else:
             return "Very Weak"
-
+    
     @property
     def color_class(self):
-        """CSS class for displaying strenght with colors """
+        """CSS class for displaying strength with colors"""
         if self.strength_score >= 70:
-            return "text-green-600" # Green for strong
+            return "text-green-600"  # Green for strong
         elif self.strength_score >= 50:
-            return "text-yellow-600" # Yellow for medium
+            return "text-yellow-600"  # Yellow for medium
         else:
-            return "text-red-600" # Red for weak
-
+            return "text-red-600"  # Red for weak
+        
+        
 class BreachCheck(models.Model):
     """
     Store results from HAVEIBEENPWNED API checks.

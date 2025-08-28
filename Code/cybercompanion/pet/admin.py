@@ -6,7 +6,7 @@ from .models import Pet, MoodHistory
 class PetAdmin(admin.ModelAdmin):
     """
     This tells Django admin how to display Pet models.
-    Think of this as customizing the a\dmin interface for pets
+    Think of this as customizing the admin interface for pets
     """
 
     # What fields to show in the list view (when you see all pets)
@@ -27,7 +27,24 @@ class PetAdmin(admin.ModelAdmin):
             'fields': ('owner', 'name', 'pet_type')
         }),
         ('Mood Status', {
+            'fields': ('current_mood', 'mood_score'),
+        }),
+        ('Timestamps', {
             'fields': ('created_at', 'last_updated'),
-            'classes': ('collapse',) # This sections starts collapsed
+            'classes': ('collapse', ) # This section starts collapse
         }),
     )
+
+@admin.register(MoodHistory)
+class MoodHistoryAdmin(admin.ModelAdmin):
+    """
+    Admin interface for viewing pet mood changes over time
+    """
+    list_display = ['pet', 'mood', 'mood_score', 'trigger_action', 'created_at']
+    list_filter = ['mood', 'created_at']
+    search_fields = ['pet__name', 'pet__owner__username']
+    readonly_fields = ['created_at']
+
+    # Show newest mood changes first
+    ordering = ['-created_at']
+    

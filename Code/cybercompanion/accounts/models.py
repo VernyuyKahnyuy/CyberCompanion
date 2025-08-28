@@ -1,3 +1,5 @@
+# accounts/models.py
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -47,6 +49,12 @@ class UserProfile(models.Model):
         blank = True,
         help_text = "When did user last check for email breaches?"
     )
+    
+    last_password_check = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When did user last check for email breaches?"
+    )
 
     # Gamification stats
     total_security_score = models.IntegerField(
@@ -90,7 +98,7 @@ class UserProfile(models.Model):
 
         # Recent breach check (within 30 days)
         recent_breach = BreachCheck.objects.filter(
-            user.self.user,
+            user = self.user,
             last_checked__gte = timezone.now() - timedelta(days = 30)
         ).first()
 

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Pet Diary - CyberCompanion{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Pet Diary</h1>
+        <a href="{% url 'dashboard:home' %}" 
+           class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+            Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Pet Health Overview -->
+    <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <!-- Pet Avatar -->
+                <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center mr-4">
+                    <div class="text-2xl">
+                        {% if user.cyber_pet.current_mood == 'happy' %}
+                            😊
+                        {% elif user.cyber_pet.current_mood == 'excited' %}
+                            🎉
+                        {% elif user.cyber_pet.current_mood == 'worried' %}
+                            😟
+                        {% elif user.cyber_pet.current_mood == 'sad' %}
+                            😢
+                        {% else %}
+                            😐
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">{{ user.cyber_pet.name }} is Happy & Healthy</h2>
+                    <p class="text-gray-600">Current security status is up to date, let's keep it that way!</p>
+                </div>
+            </div>
+            
+            <!-- Mood Timeline Chart -->
+            <div class="w-64 h-24">
+                <canvas id="moodChart" width="250" height="90"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mood Timeline -->
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Mood Timeline</h3>
+        
+        <div class="space-y-4">
+            {% for mood_entry in mood_history %}
+            <div class="flex items-start pb-4 border-b border-gray-100 last:border-b-0">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4
+                            {% if mood_entry.mood == 'happy' %}bg-green-100{% elif mood_entry.mood == 'excited' %}bg-blue-100{% elif mood_entry.mood == 'worried' %}bg-yellow-100{% elif mood_entry.mood == 'sad' %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                    <div class="text-xl">
+                        {% if mood_entry.mood == 'happy' %}
+                            😊
+                        {% elif mood_entry.mood == 'excited' %}
+                            🎉
+                        {% elif mood_entry.mood == 'worried' %}
+                            😟
+                        {% elif mood_entry.mood == 'sad' %}
+                            😢
+                        {% else %}
+                            😐
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <h4 class="font-semibold text-gray-800 capitalize">{{ mood_entry.mood }}</h4>
+                        <span class="text-sm text-gray-500">{{ mood_entry.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">
+                        {% if mood_entry.trigger_action %}
+                            Triggered by: {{ mood_entry.trigger_action }}
+                        {% else %}
+                            {% if mood_entry.mood == 'happy' %}
+                                Great security practices! Keep up the excellent work.
+                            {% elif mood_entry.mood == 'excited' %}
+                                Awesome security improvements detected!
+                            {% elif mood_entry.mood == 'worried' %}
+                                Some security concerns were detected. Please review.
+                            {% elif mood_entry.mood == 'sad' %}
+                                Security issues need immediate attention.
+                            {% else %}
+                                Regular security maintenance recommended.
+                            {% endif %}

@@ -62,10 +62,13 @@ ROOT_URLCONF = 'cybercompanion.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [
+            BASE_DIR / 'templates', # This tells django to look in the main templates folder
+        ],
+        'APP_DIRS': True, # This tells django to look in each app's templates folder too
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -124,7 +127,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / 'static', # This tells django where to find css, js, images
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles' # For production
 
