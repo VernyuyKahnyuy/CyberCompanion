@@ -81,7 +81,7 @@ class SecurityAction(models.Model):
             '2fa_enabled',
             'suspicious_link_avoided',
             'security_tip_viewed',
-            'security_scajn_completed',
+            'security_scan_completed',
         ]
         return self.action_type in positive_actions
 

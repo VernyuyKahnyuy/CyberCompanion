@@ -46,4 +46,6 @@ def pet_mood_message_view(request):
         message = pet.get_mood_message()
     else:
         message = ""
-    return JsonResponse({"message": message})
+    print({'message': message})
+    pure_message = message
+    return JsonResponse(pure_message)

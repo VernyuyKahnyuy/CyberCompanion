@@ -1,0 +1,52 @@
+<!-- templates/components/activity_feed.html -->
+<div class="space-y-3">
+    {% for action in recent_actions %}
+    <div class="activity-item {% if action.is_positive_action %}activity-positive{% elif action.action_type == 'password_check_weak' or 'breach_found' in action.action_type %}activity-warning{% else %}activity-info{% endif %}">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-3
+                        {% if action.is_positive_action %}bg-green-500{% elif action.action_type == 'password_check_weak' or 'breach_found' in action.action_type %}bg-orange-500{% else %}bg-blue-500{% endif %}">
+                <div class="text-white text-sm">
+                    {% if action.is_positive_action %}
+                        ✓
+                    {% elif action.action_type == 'password_check_weak' or 'breach_found' in action.action_type %}
+                        ⚠
+                    {% else %}
+                        ℹ
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800">
+                    {% if action.action_type == 'password_check_strong' %}
+                        Strong password detected
+                    {% elif action.action_type == 'password_check_weak' %}
+                        Weak password found
+                    {% elif action.action_type == 'breach_check_clean' %}
+                        No breaches found
+                    {% elif action.action_type == 'breach_found' %}
+                        Data breach detected
+                    {% elif action.action_type == 'suspicious_link_detected' %}
+                        Suspicious link detected
+                    {% elif action.action_type == 'password_updated' %}
+                        Password updated
+                    {% elif action.action_type == 'security_scan_completed' %}
+                        Security scan completed
+                    {% else %}
+                        {{ action.get_action_type_display }}
+                    {% endif %}
+                </p>
+                <p class="text-xs text-gray-500">
+                    {{ action.created_at|timesince }} ago
+                </p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="activity-item activity-info">
+        <div class="text-center py-4">
+            <p class="text-gray-500 text-sm">No recent activity</p>
+            <p class="text-gray-400 text-xs">Start securing your accounts to see activities here!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>

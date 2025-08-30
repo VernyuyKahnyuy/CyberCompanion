@@ -20,7 +20,7 @@ urlpatterns = [
     
     path("recent-activity/", views.recent_activity_view, name="recent_activity"),
     
-    path('update_mood', views.update_mood, name='update_mood')
+    path('update-mood', views.update_mood, name='update_mood')
     
     # HTMX endpoints for real-time updates (we'll add these later)
     # path('pet-status/', views.pet_status_htmx, name='pet_status_htmx'),

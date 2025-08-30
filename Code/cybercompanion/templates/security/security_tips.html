@@ -1,0 +1,664 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Tips - CyberCompanion{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Security Tips</h1>
+                <p class="text-gray-600">Personalized cybersecurity guidance to keep you safe online</p>
+            </div>
+            <div class="hidden md:block">
+                <div class="flex items-center bg-blue-100 px-4 py-2 rounded-lg">
+                    <div class="text-2xl mr-3">🛡️</div>
+                    <div>
+                        <p class="font-semibold text-blue-800">Security Level</p>
+                        <p class="text-sm text-blue-600">{{ user.profile.get_overall_security_grade }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Security Status -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-700">Password Health</h3>
+                <div class="w-3 h-3 {% if latest_password_check and latest_password_check.strength_score >= 70 %}bg-green-500{% else %}bg-red-500{% endif %} rounded-full"></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-800 mb-1">
+                {% if latest_password_check %}
+                    {{ latest_password_check.strength_label }}
+                {% else %}
+                    Not Checked
+                {% endif %}
+            </p>
+            <a href="{% url 'security:password_check' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Check Password →
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-700">Data Breaches</h3>
+                <div class="w-3 h-3 {% if latest_breach_check and latest_breach_check.breaches_found == 0 %}bg-green-500{% else %}bg-orange-500{% endif %} rounded-full"></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-800 mb-1">
+                {% if latest_breach_check %}
+                    {% if latest_breach_check.breaches_found == 0 %}
+                        Clean
+                    {% else %}
+                        {{ latest_breach_check.breaches_found }} Found
+                    {% endif %}
+                {% else %}
+                    Unknown
+                {% endif %}
+            </p>
+            <a href="{% url 'security:breach_check' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Check Breaches →
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-700">Pet Mood</h3>
+                <div class="text-2xl">
+                    {% if user.cyber_pet.current_mood == 'happy' %}😊
+                    {% elif user.cyber_pet.current_mood == 'excited' %}🎉
+                    {% elif user.cyber_pet.current_mood == 'worried' %}😟
+                    {% elif user.cyber_pet.current_mood == 'sad' %}😢
+                    {% else %}😐
+                    {% endif %}
+                </div>
+            </div>
+            <p class="text-2xl font-bold text-gray-800 mb-1">
+                {{ user.cyber_pet.get_current_mood_display|title }}
+            </p>
+            <a href="{% url 'dashboard:pet_diary' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                View Diary →
+            </a>
+        </div>
+    </div>
+
+    <!-- Personalized Tips Section -->
+    {% if personalized_tips %}
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Personalized Tips</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {% for tip in personalized_tips %}
+            <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 
+                        {% if tip.priority == 'high' %}border-red-500
+                        {% elif tip.priority == 'medium' %}border-orange-500
+                        {% else %}border-green-500
+                        {% endif %}">
+                <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ tip.title }}</h3>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                {% if tip.priority == 'high' %}bg-red-100 text-red-800
+                                {% elif tip.priority == 'medium' %}bg-orange-100 text-orange-800
+                                {% else %}bg-green-100 text-green-800
+                                {% endif %}">
+                        {{ tip.priority|title }} Priority
+                    </span>
+                </div>
+                <p class="text-gray-600 mb-4">{{ tip.description }}</p>
+                <div class="flex items-center justify-between">
+                    <button class="text-blue-600 hover:text-blue-800 font-medium">
+                        {{ tip.action }}
+                    </button>
+                    {% if tip.priority == 'high' %}
+                    <div class="text-red-600 text-sm font-medium">
+                        ⚠️ Action Needed
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Security Topics Grid -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Security Topics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Password Security -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('passwords')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">🔒</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Password Security</h3>
+                <p class="text-gray-600 text-sm">Create and manage strong passwords effectively</p>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('2fa')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">📱</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Two-Factor Auth</h3>
+                <p class="text-gray-600 text-sm">Add an extra layer of security to your accounts</p>
+            </div>
+
+            <!-- Email Security -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('email')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">📧</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Email Security</h3>
+                <p class="text-gray-600 text-sm">Protect yourself from phishing and spam</p>
+            </div>
+
+            <!-- Social Media -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('social')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">👥</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Social Media</h3>
+                <p class="text-gray-600 text-sm">Secure your social media presence</p>
+            </div>
+
+            <!-- Safe Browsing -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('browsing')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">🌐</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Safe Browsing</h3>
+                <p class="text-gray-600 text-sm">Browse the internet safely and privately</p>
+            </div>
+
+            <!-- Data Protection -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="toggleSection('data')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <div class="text-2xl">💾</div>
+                    </div>
+                    <div class="text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Data Protection</h3>
+                <p class="text-gray-600 text-sm">Keep your personal information safe</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expandable Content Sections -->
+    <div class="space-y-6">
+        
+        <!-- Password Security Section -->
+        <div id="passwords" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">🔒 Password Security</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Best Practices</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Use at least 12 characters
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Mix uppercase, lowercase, numbers, and symbols
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Use unique passwords for each account
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Consider using passphrases
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Tools to Help</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🛠️</span>
+                            Password managers (1Password, Bitwarden)
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🛠️</span>
+                            Browser password generators
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🛠️</span>
+                            Built-in OS password tools
+                        </li>
+                    </ul>
+                    <div class="mt-6">
+                        <a href="{% url 'security:password_check' %}" 
+                           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            Test Your Password
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two-Factor Authentication Section -->
+        <div id="2fa" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">📱 Two-Factor Authentication</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Why Use 2FA?</h4>
+                    <p class="text-gray-600 mb-4">
+                        Two-factor authentication adds an extra layer of security by requiring something you know (password) 
+                        and something you have (phone, app, or hardware token).
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Prevents 99.9% of automated attacks
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Protects even if password is compromised
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Required by many security standards
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Popular 2FA Apps</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">📱</span>
+                            Google Authenticator
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">📱</span>
+                            Authy
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">📱</span>
+                            Microsoft Authenticator
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">📱</span>
+                            1Password
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Security Section -->
+        <div id="email" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">📧 Email Security</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Spotting Phishing</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">⚠️</span>
+                            Urgent language and threats
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">⚠️</span>
+                            Suspicious sender addresses
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">⚠️</span>
+                            Generic greetings ("Dear Customer")
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">⚠️</span>
+                            Unexpected attachments or links
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Protection Tips</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Verify sender before clicking links
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Use email filters and spam protection
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Keep software updated
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Report suspicious emails
+                        </li>
+                    </ul>
+                    <div class="mt-6">
+                        <a href="{% url 'security:breach_check' %}" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Check for Breaches
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Security Section -->
+        <div id="social" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">👥 Social Media Security</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Privacy Settings</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Review who can see your posts
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Limit personal information sharing
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Control friend/follow requests
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Turn off location sharing
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Safe Sharing</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">⚠️</span>
+                            Avoid sharing travel plans in real-time
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">⚠️</span>
+                            Don't post financial information
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">⚠️</span>
+                            Be careful with photos showing personal details
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">⚠️</span>
+                            Think before sharing family information
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safe Browsing Section -->
+        <div id="browsing" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">🌐 Safe Browsing</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Browser Security</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Keep browser updated
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Use reputable extensions only
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Enable automatic security updates
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Clear browsing data regularly
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Safe Practices</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔍</span>
+                            Verify website URLs before entering data
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔍</span>
+                            Look for HTTPS (padlock icon)
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔍</span>
+                            Avoid suspicious downloads
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔍</span>
+                            Use private/incognito mode for sensitive browsing
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Protection Section -->
+        <div id="data" class="hidden bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">💾 Data Protection</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Backup Strategy</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Follow the 3-2-1 backup rule
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Use cloud storage for important files
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Test backups regularly
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            Encrypt sensitive backups
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Device Security</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔒</span>
+                            Use strong device passwords/PINs
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔒</span>
+                            Enable device encryption
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔒</span>
+                            Set up remote wipe capabilities
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">🔒</span>
+                            Install security updates promptly
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-12 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8 text-center">
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Ready to Improve Your Security?</h3>
+        <p class="text-gray-600 mb-6">Take action now to protect yourself online and make your cyber pet happy!</p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="{% url 'security:password_check' %}" 
+               class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                Check Password Strength
+            </a>
+            <a href="{% url 'security:breach_check' %}" 
+               class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Scan for Breaches
+            </a>
+            <a href="{% url 'dashboard:home' %}" 
+               class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSection(sectionId) {
+    // Hide all sections first
+    const sections = ['passwords', '2fa', 'email', 'social', 'browsing', 'data'];
+    sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden');
+        }
+    });
+    
+    // Show the selected section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.remove('hidden');
+        // Smooth scroll to the section
+        targetSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Auto-hide sections when clicking outside
+document.addEventListener('click', function(event) {
+    const sections = ['passwords', '2fa', 'email', 'social', 'browsing', 'data'];
+    const clickedElement = event.target;
+    
+    // Check if the click was on a topic card or inside a section
+    const isTopicCard = clickedElement.closest('[onclick*="toggleSection"]');
+    const isInsideSection = sections.some(id => clickedElement.closest('#' + id));
+    
+    // If clicked outside, hide all sections
+    if (!isTopicCard && !isInsideSection) {
+        sections.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .security-tip-card {
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .security-tip-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .priority-high {
+        border-left-color: #ef4444;
+        animation: pulse 2s infinite;
+    }
+    
+    .priority-medium {
+        border-left-color: #f59e0b;
+    }
+    
+    .priority-low {
+        border-left-color: #10b981;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+        }
+    }
+    
+    /* Smooth transitions for expanding sections */
+    #passwords, #2fa, #email, #social, #browsing, #data {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .topic-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .topic-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
